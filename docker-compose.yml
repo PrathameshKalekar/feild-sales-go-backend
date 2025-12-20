@@ -1,0 +1,51 @@
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+
+  typesense:
+    image: typesense/typesense:29.0
+    container_name: typesense
+    environment:
+      - .env
+    restart: on-failure
+    ports:
+      - "8108:8108"
+    volumes:
+      - typesense-data:/data
+
+  go-backend:
+    build: ./go-backend
+    container_name: go-backend
+    restart: always
+    ports:
+      - "1906:1906"
+    depends_on:
+      - redis
+      - typesense
+    environment:
+      - .env
+    volumes:
+      - ./go-backend:/app
+      - ./internal:/app/internal
+
+  go-worker:
+    build: ./go-worker
+    container_name: go-worker
+    restart: always
+    depends_on:
+      - redis
+      - typesense
+    environment:
+      - .env3222
+    volumes:
+      - ./go-worker:/app
+      - ./internal:/app/internal
+
+volumes:
+  redis-data:
+  typesense-data:
