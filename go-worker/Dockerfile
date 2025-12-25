@@ -1,12 +1,21 @@
-FROM golang:1.22-alpine
+FROM golang:1.23-alpine
 
 WORKDIR /app
 
 RUN go install github.com/githubnemo/CompileDaemon@latest
 
+# Copy go.mod and go.sum first
 COPY go.mod go.sum ./
 RUN go mod download
 
-COPY . .
+# Copy all project files
+COPY go-worker ./go-worker
+COPY internal ./internal
 
-CMD ["CompileDaemon","--build=go build -o worker","--command=./worker","--exclude-dir=.git"]
+ENV GOPROXY=https://proxy.golang.org,direct
+
+# Build directly - output to /worker (outside volume mount)
+WORKDIR /app
+RUN go build -o /worker ./go-worker/main.go
+
+CMD ["/worker"]

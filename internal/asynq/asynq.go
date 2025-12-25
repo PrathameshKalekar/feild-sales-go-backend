@@ -1,4 +1,4 @@
-package asynqUtil
+package asynqutil
 
 import (
 	"log"
@@ -9,9 +9,7 @@ import (
 	"github.com/hibiken/asynq"
 )
 
-var AsyncqClient *asynq.RedisClientOpt
-
-func ConnectToAsyncq(config *config.Config) {
+func ConnectToAsyncq(config *config.Config) *asynq.RedisClientOpt {
 	url, err := url.Parse(config.RedisUrl)
 	if err != nil {
 		log.Println("Error while parsing redis url")
@@ -22,7 +20,7 @@ func ConnectToAsyncq(config *config.Config) {
 
 	}
 
-	AsyncqClient = &asynq.RedisClientOpt{
+	return &asynq.RedisClientOpt{
 		Addr: url.Host,
 		DB:   db,
 	}

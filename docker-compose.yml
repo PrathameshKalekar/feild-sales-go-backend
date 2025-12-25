@@ -19,7 +19,9 @@ services:
       - typesense-data:/data
 
   go-backend:
-    build: ./go-backend
+    build:
+      context: .
+      dockerfile: ./go-backend/Dockerfile
     container_name: go-backend
     restart: always
     ports:
@@ -34,14 +36,16 @@ services:
       - ./internal:/app/internal
 
   go-worker:
-    build: ./go-worker
+    build:
+      context: .
+      dockerfile: ./go-worker/Dockerfile
     container_name: go-worker
     restart: always
     depends_on:
       - redis
       - typesense
     environment:
-      - .env3222
+      - .env
     volumes:
       - ./go-worker:/app
       - ./internal:/app/internal

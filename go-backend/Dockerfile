@@ -1,17 +1,20 @@
-FROM golang:1.22-alpine
+FROM golang:1.23-alpine
 
 WORKDIR /app
 
 # Install CompileDaemon
 RUN go install github.com/githubnemo/CompileDaemon@latest
 
-# Copy go.mod first (for caching)
+# Copy go.mod and go.sum from project root
 COPY go.mod go.sum ./
 RUN go mod download
 
-# Copy rest of the code
-COPY . .
+# Copy project files
+COPY go-backend ./go-backend
+COPY internal ./internal
 
-EXPOSE 8080
+WORKDIR /app
 
-CMD ["CompileDaemon","--build=go build -o app","--command=./app","--exclude-dir=.git"]
+EXPOSE 1906
+
+CMD ["CompileDaemon","--build=go build -o go-backend/app ./go-backend/main.go","--command=./go-backend/app","--exclude-dir=.git"]
