@@ -11,11 +11,9 @@ RUN go mod download
 # Copy all project files
 COPY go-worker ./go-worker
 COPY internal ./internal
+COPY .env* ./
 
-ENV GOPROXY=https://proxy.golang.org,direct
-
-# Build directly - output to /worker (outside volume mount)
 WORKDIR /app
-RUN go build -o /worker ./go-worker/main.go
 
-CMD ["/worker"]
+# Use CompileDaemon for live-reloading
+CMD ["CompileDaemon", "--build=go build -o /worker ./go-worker/main.go", "--command=/worker", "--exclude-dir=.git"]

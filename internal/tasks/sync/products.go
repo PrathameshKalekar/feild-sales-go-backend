@@ -1,4 +1,4 @@
-package syncutil
+package sync
 
 import (
 	"context"
@@ -8,7 +8,6 @@ import (
 )
 
 func HandleSyncProductsTask(ctx context.Context, task *asynq.Task) error {
-	log.Println("Called for product sync")
-	// TODO: Implement actual sync logic here
+	log.Println("Executing sync:products")
 	return nil
 }

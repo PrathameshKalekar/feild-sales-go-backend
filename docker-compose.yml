@@ -32,8 +32,9 @@ services:
     environment:
       - .env
     volumes:
-      - ./go-backend:/app
+      - ./go-backend:/app/go-backend
       - ./internal:/app/internal
+      - ./.env:/app/.env
 
   go-worker:
     build:
@@ -47,8 +48,9 @@ services:
     environment:
       - .env
     volumes:
-      - ./go-worker:/app
+      - ./go-worker:/app/go-worker
       - ./internal:/app/internal
+      - ./.env:/app/.env
 
 volumes:
   redis-data:

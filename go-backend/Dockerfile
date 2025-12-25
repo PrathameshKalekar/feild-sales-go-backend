@@ -12,9 +12,10 @@ RUN go mod download
 # Copy project files
 COPY go-backend ./go-backend
 COPY internal ./internal
+COPY .env* ./
 
 WORKDIR /app
 
 EXPOSE 1906
 
-CMD ["CompileDaemon","--build=go build -o go-backend/app ./go-backend/main.go","--command=./go-backend/app","--exclude-dir=.git"]
+CMD ["CompileDaemon","--build=go build -o /backend ./go-backend/main.go","--command=/backend","--exclude-dir=.git"]
