@@ -6,6 +6,7 @@ import (
 	redisutil "github.com/PrathameshKalekar/field-sales-go-backend/internal/redis"
 	"github.com/PrathameshKalekar/field-sales-go-backend/internal/tasks"
 	syncutil "github.com/PrathameshKalekar/field-sales-go-backend/internal/tasks/sync"
+	typesenseutil "github.com/PrathameshKalekar/field-sales-go-backend/internal/typesense"
 	"github.com/hibiken/asynq"
 )
 
@@ -13,6 +14,7 @@ func main() {
 	config.Load()
 	redisOpt := asynqutil.ConnectToAsyncq(config.ConfigGlobal)
 	redisutil.ConnectToRedis(config.ConfigGlobal)
+	typesenseutil.ConnectToTypesense(config.ConfigGlobal)
 	asyncServer := asynq.NewServer(
 		redisOpt,
 		asynq.Config{
@@ -38,7 +40,7 @@ func main() {
 
 	scheduler := asynq.NewScheduler(redisOpt, nil)
 	// Schedule orchestration task instead of individual tasks
-	scheduler.Register("* * * * *", tasks.OrchestrateFullSyncTask())
+	scheduler.Register("0 * * * *", tasks.OrchestrateFullSyncTask())
 
 	go func() {
 		scheduler.Run()

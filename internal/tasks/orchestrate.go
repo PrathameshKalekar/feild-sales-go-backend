@@ -33,15 +33,8 @@ func RunFullSyncOrchestration(client *asynq.Client) error {
 		SyncCustomerStatementsTask(),
 	}
 
-	var coreGroup []*asynq.TaskInfo
 	for _, task := range coreTasks {
-		info, err := client.Enqueue(task)
-		if err != nil {
-			log.Printf("❌ Failed to enqueue task: %v", err)
-			redisutil.RedisClient.Del(ctx, lockKey)
-			return err
-		}
-		coreGroup = append(coreGroup, info)
+		client.Enqueue(task)
 	}
 
 	orderTasks := []*asynq.Task{
@@ -49,15 +42,8 @@ func RunFullSyncOrchestration(client *asynq.Client) error {
 		SyncInvoicesAndLinesTask(),
 	}
 
-	var orderGroup []*asynq.TaskInfo
 	for _, task := range orderTasks {
-		info, err := client.Enqueue(task)
-		if err != nil {
-			log.Printf("❌ Failed to enqueue task: %v", err)
-			redisutil.RedisClient.Del(ctx, lockKey)
-			return err
-		}
-		orderGroup = append(orderGroup, info)
+		client.Enqueue(task)
 	}
 
 	redisutil.RedisClient.Del(ctx, lockKey)

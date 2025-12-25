@@ -22,7 +22,6 @@ func Load() {
 
 	if err := godotenv.Load(".env"); err == nil {
 		log.Println("✅ Loaded .env")
-
 	}
 
 	ConfigGlobal = &Config{
