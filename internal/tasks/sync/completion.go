@@ -17,3 +17,14 @@ func MarkCoreTaskCompletion(ctx context.Context) {
 	}
 	log.Printf("📊 Core tasks remaining: %d", remaining)
 }
+
+// MarkOrderTaskCompletion decrements the order tasks counter when an order task completes
+func MarkOrderTaskCompletion(ctx context.Context) {
+	orderTasksKey := "order_tasks_remaining"
+	remaining, err := redisutil.RedisClient.Decr(ctx, orderTasksKey).Result()
+	if err != nil {
+		log.Printf("⚠️  Failed to decrement order tasks counter: %v", err)
+		return
+	}
+	log.Printf("📊 Order tasks remaining: %d", remaining)
+}

@@ -10,7 +10,8 @@ import (
 )
 
 const (
-	coreTasksCount = 4
+	coreTasksCount  = 4
+	orderTasksCount = 2
 )
 
 func RunFullSyncOrchestration(client *asynq.Client) error {
@@ -55,7 +56,6 @@ func RunFullSyncOrchestration(client *asynq.Client) error {
 		}
 	}
 
-
 	// Poll for core tasks completion (with timeout)
 	timeout := 15 * time.Minute
 	checkInterval := 2 * time.Second
@@ -84,6 +84,14 @@ func RunFullSyncOrchestration(client *asynq.Client) error {
 		time.Sleep(checkInterval)
 	}
 
+	// Initialize order tasks completion counter
+	orderTasksKey := "order_tasks_remaining"
+	if err := redisutil.RedisClient.Set(ctx, orderTasksKey, orderTasksCount, 0).Err(); err != nil {
+		log.Printf("❌ Failed to set order tasks counter: %v", err)
+		redisutil.RedisClient.Del(ctx, lockKey)
+		return err
+	}
+
 	// Enqueue order tasks group
 	log.Println("📦 Group 2: Order Tasks - Enqueuing tasks in parallel...")
 	log.Println("   - sync:orders")
@@ -98,15 +106,43 @@ func RunFullSyncOrchestration(client *asynq.Client) error {
 		if _, err := client.Enqueue(task); err != nil {
 			log.Printf("❌ Failed to enqueue order task: %v", err)
 			redisutil.RedisClient.Del(ctx, lockKey)
+			redisutil.RedisClient.Del(ctx, orderTasksKey)
 			return err
 		}
 	}
 
 	log.Printf("✅ Order tasks group enqueued - %d tasks", len(orderTasks))
-	log.Println("✅ Full sync orchestration completed! Lock will be released after order tasks complete.")
 
-	// Don't delete lock here - let it expire or be released by a cleanup task
-	// The lock will prevent new syncs while order tasks are running
+	// Poll for order tasks completion (with timeout)
+	orderTimeout := 20 * time.Minute
+	orderStartTime := time.Now()
+
+	for {
+		if time.Since(orderStartTime) > orderTimeout {
+			log.Printf("❌ Timeout waiting for order tasks to complete")
+			redisutil.RedisClient.Del(ctx, lockKey)
+			redisutil.RedisClient.Del(ctx, orderTasksKey)
+			return nil
+		}
+
+		remaining, err := redisutil.RedisClient.Get(ctx, orderTasksKey).Int()
+		if err != nil {
+			// Key doesn't exist or error - assume tasks completed
+			break
+		}
+
+		if remaining == 0 {
+			log.Println("✅ All order tasks completed!")
+			redisutil.RedisClient.Del(ctx, orderTasksKey)
+			break
+		}
+
+		time.Sleep(checkInterval)
+	}
+
+	// All tasks completed - release lock and log final message
+	redisutil.RedisClient.Del(ctx, lockKey)
+	log.Println("✅ Full sync completed!")
 
 	return nil
 }

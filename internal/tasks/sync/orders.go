@@ -125,6 +125,7 @@ func HandleSyncOrdersTask(ctx context.Context, t *asynq.Task) error {
 	}
 
 	log.Printf("✅ Orders sync completed. Total indexed: %d", totalIndexed)
+	MarkOrderTaskCompletion(ctx)
 	return nil
 }
 
