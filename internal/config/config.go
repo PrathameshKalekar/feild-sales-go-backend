@@ -16,6 +16,9 @@ type Config struct {
 	TypesenseKey  string
 	TypesensePort string
 	OdooURL       string
+	OdooDB        string
+	OdooUsername  string
+	OdooPassword  string
 }
 
 func Load() {
@@ -31,6 +34,9 @@ func Load() {
 		TypesenseKey:  getEnv("TYPESENSE_API_KEY"),
 		TypesensePort: getEnv("TYPESENSE_PORT"),
 		OdooURL:       getEnv("ODOO_URL"),
+		OdooDB:        getEnv("ODOO_DB"),
+		OdooUsername:  getEnv("ODOO_USERNAME"),
+		OdooPassword:  getEnv("ODOO_PASSWORD"),
 	}
 
 }
